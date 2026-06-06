@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="format-detection" content="telephone=no">
+  <title>Universe Leap Art Board</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: #101114;
+      color: #f8f0d4;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      padding: 24px;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .hero,
+    .section,
+    .panel {
+      background: #171a1f;
+      border: 1px solid #2a2f39;
+      border-radius: 20px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.24);
+    }
+
+    .hero {
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      margin: 0;
+      color: #d8d2c1;
+      line-height: 1.6;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .meta-card {
+      padding: 16px;
+      background: #111319;
+      border-radius: 14px;
+      border: 1px solid #262b35;
+    }
+
+    .meta-label {
+      display: block;
+      color: #93a0b8;
+      font-size: 13px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .meta-value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .section {
+      padding: 22px;
+      margin-bottom: 24px;
+    }
+
+    .section h2 {
+      margin: 0 0 10px;
+      font-size: 26px;
+    }
+
+    .section-intro {
+      margin: 0 0 20px;
+      color: #c2c8d4;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .background-grid {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .component-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .card {
+      background: #111319;
+      border: 1px solid #262b35;
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .card-preview {
+      background: #0b0d12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 280px;
+      padding: 16px;
+    }
+
+    .card-preview.background {
+      padding: 0;
+      min-height: 520px;
+      align-items: stretch;
+    }
+
+    .card-preview.background img {
+      width: 100%;
+      height: 520px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-preview.component img {
+      max-width: 100%;
+      max-height: 240px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      background-image:
+        linear-gradient(45deg, rgba(255,255,255,0.03) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255,255,255,0.03) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.03) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.03) 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+    }
+
+    .card-body {
+      padding: 16px 16px 18px;
+    }
+
+    .card-title {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      background: #232936;
+      border-radius: 999px;
+      color: #dbe5ff;
+      font-size: 12px;
+    }
+
+    .path {
+      margin: 0;
+      color: #9fb0ca;
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .code-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .code-item {
+      padding: 16px;
+      background: #111319;
+      border: 1px solid #262b35;
+      border-radius: 14px;
+    }
+
+    .code-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .code-name {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .code-lang {
+      color: #8fc6ff;
+      font-size: 13px;
+    }
+
+    .note {
+      margin-top: 20px;
+      padding: 16px;
+      background: #111319;
+      border: 1px solid #262b35;
+      border-radius: 14px;
+      color: #d5d9e3;
+      line-height: 1.7;
+    }
+
+    .note a {
+      color: #8fc6ff;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 16px;
+      }
+
+      .hero h1 {
+        font-size: 28px;
+      }
+
+      .card-preview.background {
+        min-height: 360px;
+      }
+
+      .card-preview.background img {
+        height: 360px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>Universe Leap Art Board</h1>
+      <p>这是 `feat/art` 分支的素材预览页，用于集中查看当前已从飞书素材文档整理下来的宇宙背景、组件示意图和对应代码文件。它不替代 `play.html`，只承担素材验收、命名检查和接入前预览。</p>
+      <div class="meta">
+        <div class="meta-card">
+          <span class="meta-label">当前分支</span>
+          <span class="meta-value">feat/art</span>
+        </div>
+        <div class="meta-card">
+          <span class="meta-label">宇宙背景</span>
+          <span class="meta-value">4 张</span>
+        </div>
+        <div class="meta-card">
+          <span class="meta-label">组件图片</span>
+          <span class="meta-value">9 张</span>
+        </div>
+        <div class="meta-card">
+          <span class="meta-label">组件代码</span>
+          <span class="meta-value">10 份</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>宇宙背景</h2>
+      <p class="section-intro">四张背景图已经按宇宙名称重命名并落到 `assets/art/backgrounds/`，这里用于确认视觉风格、命名和后续场景接入映射。</p>
+      <div class="grid background-grid">
+        <article class="card">
+          <div class="card-preview background">
+            <img src="assets/art/backgrounds/bg_universe_stone.png" alt="石头宇宙背景">
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">石头宇宙</h3>
+            <div class="tag-list">
+              <span class="tag">教程关</span>
+              <span class="tag">石头 / 沙漠</span>
+            </div>
+            <p class="path">assets/art/backgrounds/bg_universe_stone.png</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-preview background">
+            <img src="assets/art/backgrounds/bg_universe_laundromat.png" alt="洗衣店宇宙背景">
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">洗衣店宇宙</h3>
+            <div class="tag-list">
+              <span class="tag">现实生活</span>
+              <span class="tag">洗衣房</span>
+            </div>
+            <p class="path">assets/art/backgrounds/bg_universe_laundromat.png</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-preview background">
+            <img src="assets/art/backgrounds/bg_universe_hotdog.png" alt="热狗宇宙背景">
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">热狗宇宙</h3>
+            <div class="tag-list">
+              <span class="tag">荒诞</span>
+              <span class="tag">热狗主题</span>
+            </div>
+            <p class="path">assets/art/backgrounds/bg_universe_hotdog.png</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-preview background">
+            <img src="assets/art/backgrounds/bg_universe_kungfu.png" alt="功夫宇宙背景">
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">功夫宇宙</h3>
+            <div class="tag-list">
+              <span class="tag">功夫明星</span>
+              <span class="tag">黑白对峙</span>
+            </div>
+            <p class="path">assets/art/backgrounds/bg_universe_kungfu.png</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>组件图片</h2>
+      <p class="section-intro">这里展示从素材文档里下载到本地的组件示意图，主要用于和代码版本做对照，确认角色、碎片和奖励物的命名与风格是否统一。</p>
+      <div class="grid component-grid">
+        <article class="card">
+          <div class="card-preview component"><img src="assets/art/components/images/bagel_pixel.png" alt="贝果"></div>
+          <div class="card-body">
+            <h3 class="card-title">贝果</h3>
+            <p class="path">assets/art/components/images/bagel_pixel.png</p>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-preview component"><img src="assets/art/components/images/stone_sprite.png" alt="石头玩家"></div>
+          <div class="card-body">
+            <h3 class="card-title">石头玩家</h3>
+            <p class="path">assets/art/components/images/stone_sprite.png</p>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-preview component"><img src="assets/art/components/images/blue_diamond_fragment.png" alt="蓝色菱形碎片"></div>
+          <div class="card-body">
+            <h3 class="card-title">蓝色菱形碎片</h3>
+            <p class="path">assets/art/components/images/blue_diamond_fragment.png</p>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-preview component"><img src="assets/art/components/images/coin_matrix_demo.png" alt="硬币"></div>
+          <div class="card-body">
+            <h3 class="card-title">硬币</h3>
+            <p class="path">assets/art/components/images/coin_matrix_demo.png</p>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-preview component"><img src="assets/art/components/images/evelyn_classic_front.png" alt="经典 Evelyn"></div>
+          <div class="card-body">
+            <h3 class="card-title">经典 Evelyn</h3>
+            <p class="path">assets/art/components/images/evelyn_classic_front.png</p>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-preview component"><img src="assets/art/components/images/evelyn_hotdog_hand.png" alt="热狗手 Evelyn"></div>
+          <div class="card-body">
+            <h3 class="card-title">热狗手 Evelyn</h3>
+            <p class="path">assets/art/components/images/evelyn_hotdog_hand.png</p>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-preview component"><img src="assets/art/components/images/evelyn_kungfu.png" alt="功夫 Evelyn"></div>
+          <div class="card-body">
+            <h3 class="card-title">功夫 Evelyn</h3>
+            <p class="path">assets/art/components/images/evelyn_kungfu.png</p>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-preview component"><img src="assets/art/components/images/trophy_pixel.png" alt="奖杯"></div>
+          <div class="card-body">
+            <h3 class="card-title">奖杯</h3>
+            <p class="path">assets/art/components/images/trophy_pixel.png</p>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-preview component"><img src="assets/art/components/images/hotdog_hand_pixel.png" alt="香肠手"></div>
+          <div class="card-body">
+            <h3 class="card-title">香肠手</h3>
+            <p class="path">assets/art/components/images/hotdog_hand_pixel.png</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>组件代码映射</h2>
+      <p class="section-intro">这些代码文件都已经按素材名称独立保存，便于后续逐个改造成游戏内的程序化绘制或 sprite 资源。这里主要作为素材验收和接入清单。</p>
+      <div class="code-list">
+        <div class="code-item">
+          <div class="code-head">
+            <span class="code-name">prompt_notes.txt</span>
+            <span class="code-lang">Plain Text</span>
+          </div>
+          <p class="path">assets/art/components/code/提示词补充.txt</p>
+        </div>
+        <div class="code-item">
+          <div class="code-head">
+            <span class="code-name">bagel_pixel_transparent.css</span>
+            <span class="code-lang">CSS</span>
+          </div>
+          <p class="path">assets/art/components/code/贝果像素透明底.css</p>
+        </div>
+        <div class="code-item">
+          <div class="code-head">
+            <span class="code-name">stone_sprite.js</span>
+            <span class="code-lang">JavaScript</span>
+          </div>
+          <p class="path">assets/art/components/code/石头代码.js</p>
+        </div>
+        <div class="code-item">
+          <div class="code-head">
+            <span class="code-name">coin_sprite.js</span>
+            <span class="code-lang">JavaScript</span>
+          </div>
+          <p class="path">assets/art/components/code/硬币代码.js</p>
+        </div>
+        <div class="code-item">
+          <div class="code-head">
+            <span class="code-name">tutorial_fragment.js</span>
+            <span class="code-lang">JavaScript</span>
+          </div>
+          <p class="path">assets/art/components/code/第一关默认碎片.js</p>
+        </div>
+        <div class="code-item">
+          <div class="code-head">
+            <span class="code-name">classic_evelyn.js</span>
+            <span class="code-lang">JavaScript</span>
+          </div>
+          <p class="path">assets/art/components/code/经典皮肤玩家.js</p>
+        </div>
+        <div class="code-item">
+          <div class="code-head">
+            <span class="code-name">hotdog_evelyn.js</span>
+            <span class="code-lang">JavaScript</span>
+          </div>
+          <p class="path">assets/art/components/code/香肠手玩家.js</p>
+        </div>
+        <div class="code-item">
+          <div class="code-head">
+            <span class="code-name">kungfu_evelyn.js</span>
+            <span class="code-lang">JavaScript</span>
+          </div>
+          <p class="path">assets/art/components/code/功夫玩家.js</p>
+        </div>
+        <div class="code-item">
+          <div class="code-head">
+            <span class="code-name">trophy_sprite.js</span>
+            <span class="code-lang">JavaScript</span>
+          </div>
+          <p class="path">assets/art/components/code/奖杯.js</p>
+        </div>
+        <div class="code-item">
+          <div class="code-head">
+            <span class="code-name">hotdog_hand.js</span>
+            <span class="code-lang">JavaScript</span>
+          </div>
+          <p class="path">assets/art/components/code/香肠手.js</p>
+        </div>
+      </div>
+      <div class="note">
+        当前 `art.html` 只承担素材预览与验收，不替代 `play.html` 的正式游戏入口。你现在也可以直接打开 <a href="assets/art/components/demo.html">组件 Demo 页</a> 查看每个脚本的默认绘制效果。后续我会在这个分支里继续把四张宇宙背景和对应组件逐步并入游戏渲染流程。
+      </div>
+    </section>
+  </div>
+</body>
+</html>

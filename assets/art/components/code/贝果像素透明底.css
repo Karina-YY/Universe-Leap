@@ -1,0 +1,13 @@
+.bagel {
+  width: 4px;
+  height: 4px;
+  background: #d47a1f;
+  box-shadow:
+    4px 0 #d47a1f,
+    8px 0 #d47a1f,
+    12px 0 #d47a1f,
+    0 4px #d47a1f,
+    4px 4px #f0b35c,
+    8px 4px #f8d28a,
+    12px 4px #d47a1f;
+}
