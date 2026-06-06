@@ -21,6 +21,7 @@
     this.running = false;
     this.toast = null;
     this.overlayButton = null;
+    this.overlayAction = null;
     this._bindOverlayInput();
     this.reset();
   }
@@ -30,7 +31,7 @@
     this.canvas.addEventListener('pointerup', function onPointerUp(event) {
       try {
         var pos;
-        if (!self.pendingFormalEntry || !self.overlayButton) {
+        if (!self.overlayButton) {
           return;
         }
         pos = self.getCanvasPoint(event);
@@ -43,7 +44,15 @@
           pos.y >= self.overlayButton.y &&
           pos.y <= self.overlayButton.y + self.overlayButton.h
         ) {
-          self.startFormalStage();
+          if (self.overlayAction === 'enterLevel2' && typeof self.startLevel2 === 'function') {
+            self.overlayAction = null;
+            self.overlayButton = null;
+            self.startLevel2();
+            return;
+          }
+          if (self.pendingFormalEntry) {
+            self.startFormalStage();
+          }
         }
       } catch (error) {
         self.handleFatalError(error);
@@ -99,6 +108,7 @@
     this.collectedTutorial = 0;
     this.skillCooldownLeft = 0;
     this.overlayButton = null;
+    this.overlayAction = null;
     this.player = entities.createPlayer(
       spawn.x,
       spawn.y,
@@ -259,10 +269,6 @@
     this.collectedTotal += 1;
     if (this.stage === 'tutorial') {
       this.collectedTutorial += 1;
-      if (this.collectedTutorial >= this.config.tutorialFragmentGoal && !this.pendingFormalEntry) {
-        this.pendingFormalEntry = true;
-        this.toast = null;
-      }
     }
     this.collapse = utils.clamp(this.collapse - this.config.fragmentRelief, 0, 100);
   };
@@ -315,6 +321,32 @@
     this.applyUniverse(this.getRandomUniverseKey(null), true);
     this.resetAllPursuers();
     this.addToast('正式关开始：四宇宙将随技能随机跃迁。');
+  };
+
+  UniverseLeapGame.prototype.startLevel2 = function startLevel2() {
+    var spawn = utils.cellToWorldCenter(this.map.playerSpawn.col, this.map.playerSpawn.row, this.map.tileSize);
+    this.stage = 'formal';
+    this.pendingFormalEntry = false;
+    this.status = 'playing';
+    this.elapsed = 0;
+    this.collapse = this.config.initialCollapse;
+    this.collectedTotal = 0;
+    this.collectedTutorial = 0;
+    this.skillCooldownLeft = 0;
+    this.overlayButton = null;
+    this.player = entities.createPlayer(
+      spawn.x,
+      spawn.y,
+      this.config.playerRadius,
+      this.config.playerSpeed,
+      this.getUniverse(this.config.tutorialUniverse).player
+    );
+    this.fragments = [];
+    this.nextFragmentId = 1;
+    this.applyUniverse(this.getRandomUniverseKey(null), true);
+    this.initializeFragments();
+    this.resetAllPursuers();
+    this.addToast('第2关开始：四宇宙将随技能随机跃迁。');
   };
 
   UniverseLeapGame.prototype.addToast = function addToast(text) {
@@ -473,7 +505,6 @@
       this.drawHUD(ctx);
       this.drawSkillButton(ctx);
       this.drawToast(ctx);
-      this.drawTutorialCompleteOverlay(ctx);
       this.drawEndState(ctx);
     } catch (error) {
       this.handleFatalError(error);
@@ -562,7 +593,7 @@
 
     ctx.font = '22px Arial';
     ctx.fillText('宇宙：' + this.currentUniverse.label, 36, 92);
-    ctx.fillText(this.stage === 'tutorial' ? '阶段：教程关' : '阶段：正式关', 36, 122);
+    ctx.fillText(this.stage === 'tutorial' ? '关卡：第1关' : '关卡：第2关', 36, 122);
     ctx.fillText('时间：' + utils.formatSeconds(this.elapsed), 470, 92);
     ctx.fillText('碎片：' + this.collectedTotal, 470, 122);
 
@@ -578,7 +609,7 @@
     if (this.stage === 'tutorial') {
       ctx.font = '20px Arial';
       ctx.fillStyle = '#fff7df';
-      ctx.fillText('教程目标：收集 ' + this.collectedTutorial + '/' + this.config.tutorialFragmentGoal + ' 个碎片', 36, 170);
+      ctx.fillText('第1关目标：将坍塌值降至 0%', 36, 170);
     }
   };
 
@@ -625,53 +656,51 @@
     ctx.restore();
   };
 
-  UniverseLeapGame.prototype.drawTutorialCompleteOverlay = function drawTutorialCompleteOverlay(ctx) {
-    if (!this.pendingFormalEntry) {
-      this.overlayButton = null;
-      return;
-    }
-
-    this.overlayButton = {
-      x: 170,
-      y: 820,
-      w: 380,
-      h: 92
-    };
-
-    ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.72)';
-    ctx.fillRect(0, 0, this.config.logicWidth, this.config.logicHeight);
-
-    ctx.fillStyle = '#fff7df';
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 46px Arial';
-    ctx.fillText('教学关卡通过', this.config.logicWidth * 0.5, 360);
-
-    ctx.font = '28px Arial';
-    ctx.fillText('你已掌握：', this.config.logicWidth * 0.5, 445);
-
-    ctx.textAlign = 'left';
-    ctx.font = '30px Arial';
-    ctx.fillText('✓ 移动操作', 210, 530);
-    ctx.fillText('✓ 收集碎片', 210, 590);
-    ctx.fillText('✓ 躲避追逐者', 210, 650);
-
-    ctx.textAlign = 'center';
-    ctx.font = '28px Arial';
-    ctx.fillText('接下来将进入正式宇宙挑战。', this.config.logicWidth * 0.5, 730);
-
-    ctx.fillStyle = this.currentUniverse.accent;
-    ctx.fillRect(this.overlayButton.x, this.overlayButton.y, this.overlayButton.w, this.overlayButton.h);
-    ctx.fillStyle = '#111';
-    ctx.font = 'bold 30px Arial';
-    ctx.fillText('进入正式关卡', this.config.logicWidth * 0.5, 878);
-    ctx.restore();
-  };
-
   UniverseLeapGame.prototype.drawEndState = function drawEndState(ctx) {
     if (this.status === 'playing') {
+      this.overlayButton = null;
+      this.overlayAction = null;
       return;
     }
+
+    if (this.stage === 'tutorial' && this.status === 'win') {
+      this.overlayButton = {
+        x: 170,
+        y: 820,
+        w: 380,
+        h: 92
+      };
+      this.overlayAction = 'enterLevel2';
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.72)';
+      ctx.fillRect(0, 0, this.config.logicWidth, this.config.logicHeight);
+
+      ctx.fillStyle = '#fff7df';
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 46px Arial';
+      ctx.fillText('第1关完成', this.config.logicWidth * 0.5, 360);
+
+      ctx.font = '28px Arial';
+      ctx.fillText('坍塌值已降至 0%。', this.config.logicWidth * 0.5, 445);
+      ctx.fillText('是否确认进入第2关？', this.config.logicWidth * 0.5, 490);
+
+      ctx.fillStyle = this.currentUniverse.accent;
+      ctx.fillRect(this.overlayButton.x, this.overlayButton.y, this.overlayButton.w, this.overlayButton.h);
+      ctx.fillStyle = '#111';
+      ctx.font = 'bold 30px Arial';
+      ctx.fillText('进入第2关', this.config.logicWidth * 0.5, 878);
+
+      ctx.fillStyle = 'rgba(255,247,223,0.78)';
+      ctx.font = '22px Arial';
+      ctx.fillText('或点击右下角技能键重新开始', this.config.logicWidth * 0.5, 960);
+      ctx.textAlign = 'left';
+      ctx.restore();
+      return;
+    }
+
+    this.overlayButton = null;
+    this.overlayAction = null;
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.64)';
     ctx.fillRect(0, 0, this.config.logicWidth, this.config.logicHeight);
