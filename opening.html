@@ -182,10 +182,23 @@
       font-size: 13px;
       color: rgba(255, 255, 255, 0.72);
     }
+
+    .audio-toggle {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      z-index: 5;
+      padding: 10px 14px;
+      font-size: 14px;
+      background: rgba(8, 10, 25, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(8px);
+    }
   </style>
 </head>
 <body>
   <div class="app" id="app">
+    <button class="audio-toggle ghost" id="audio-toggle">音乐：待启动</button>
     <section class="screen active" data-index="0">
       <div class="art" style="background-image:url('assets/opening/开场启动页.jpg');"></div>
       <div class="overlay"></div>
@@ -252,15 +265,22 @@
     </div>
   </div>
 
+  <script src="assets/audio/escape_bagel_theme.js"></script>
   <script>
     (function () {
       'use strict';
 
       try {
         var app = document.getElementById('app');
+        var audioToggle = document.getElementById('audio-toggle');
         var screens = Array.prototype.slice.call(document.querySelectorAll('.screen'));
         var dots = Array.prototype.slice.call(document.querySelectorAll('.progress-dot'));
+        var player = window.ULEAP_Audio && window.ULEAP_Audio.createEscapeBagelThemePlayer
+          ? window.ULEAP_Audio.createEscapeBagelThemePlayer()
+          : null;
         var activeIndex = 0;
+        var audioStarted = false;
+        var audioEnabled = false;
 
         function setActive(index) {
           var i;
@@ -271,9 +291,43 @@
           }
         }
 
+        function updateAudioLabel() {
+          if (!audioToggle) {
+            return;
+          }
+          if (!player) {
+            audioToggle.textContent = '音乐：不可用';
+            return;
+          }
+          if (!audioStarted) {
+            audioToggle.textContent = '音乐：待启动';
+            return;
+          }
+          audioToggle.textContent = audioEnabled ? '音乐：播放中' : '音乐：已静音';
+        }
+
+        function ensureMusicStarted() {
+          if (!player || audioStarted) {
+            return;
+          }
+          audioStarted = true;
+          audioEnabled = true;
+          player.start().then(function () {
+            updateAudioLabel();
+          }).catch(function (error) {
+            console.error(error);
+            audioEnabled = false;
+            updateAudioLabel();
+          });
+        }
+
         app.addEventListener('click', function (event) {
           var next = event.target.getAttribute('data-next');
           var prev = event.target.getAttribute('data-prev');
+          if (event.target === audioToggle) {
+            return;
+          }
+          ensureMusicStarted();
           if (next !== null) {
             setActive(parseInt(next, 10));
             return;
@@ -286,6 +340,33 @@
             setActive(activeIndex + 1);
           }
         });
+
+        if (audioToggle) {
+          audioToggle.addEventListener('click', function () {
+            if (!player) {
+              updateAudioLabel();
+              return;
+            }
+            if (!audioStarted) {
+              ensureMusicStarted();
+              return;
+            }
+            if (audioEnabled) {
+              player.stop();
+              audioEnabled = false;
+            } else {
+              player.start().then(function () {
+                audioEnabled = true;
+                updateAudioLabel();
+              }).catch(function (error) {
+                console.error(error);
+              });
+            }
+            updateAudioLabel();
+          });
+        }
+
+        updateAudioLabel();
       } catch (error) {
         console.error(error);
       }
