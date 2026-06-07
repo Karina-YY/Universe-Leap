@@ -3,6 +3,7 @@
 
   var game = null;
   var prefersReducedMotion = false;
+  var engineConfig = null;
   var gateScreen = null;
   var gateTitle = null;
   var gateSubtitle = null;
@@ -10,6 +11,32 @@
   var victoryScreen = null;
   var victoryButton = null;
   var victoryShown = false;
+
+  function getEngineConfig() {
+    if (engineConfig) {
+      return engineConfig;
+    }
+    var cfg = global.ULEAP_ENGINE || {};
+    engineConfig = {
+      storyDurationMs: typeof cfg.storyDurationMs === 'number' ? cfg.storyDurationMs : 2000,
+      storySlides: Array.isArray(cfg.storySlides) ? cfg.storySlides.slice(0, 2) : [],
+      opening: cfg.opening || null
+    };
+    return engineConfig;
+  }
+
+  function preloadImages(urls) {
+    if (!urls || !urls.length) {
+      return;
+    }
+    for (var i = 0; i < urls.length; i += 1) {
+      if (!urls[i]) {
+        continue;
+      }
+      var img = new Image();
+      img.src = urls[i];
+    }
+  }
 
   function showFatalError() {
     var errorElement = document.getElementById('fatal-error');
@@ -118,6 +145,7 @@
   global.addEventListener('DOMContentLoaded', function onReady() {
     try {
       var canvas = document.getElementById('game-canvas');
+      var engineArtLayer = document.getElementById('engine-art-layer');
       var errorElement = document.getElementById('fatal-error');
       var startScreen = document.getElementById('start-screen');
       var startButton = document.getElementById('start-button');
@@ -148,6 +176,13 @@
       }
 
       function startLoop() {
+        if (engineArtLayer) {
+          engineArtLayer.style.display = 'none';
+          engineArtLayer.classList.remove('engine-art--zoom');
+        }
+        if (canvas) {
+          canvas.style.opacity = '1';
+        }
         game.running = true;
         global.requestAnimationFrame(tick);
       }
@@ -164,40 +199,117 @@
           return;
         }
 
+        if (engineArtLayer) {
+          engineArtLayer.style.display = 'block';
+        }
+        if (canvas) {
+          canvas.style.opacity = '0';
+        }
         showOverlay(storyScreen);
 
-        function renderSlide(index) {
-          storyCaption.textContent = '情景画面 ' + index + ' / 2';
-          storySlide.style.background =
-            index === 1
-              ? 'radial-gradient(circle at 25% 25%, rgba(116, 242, 206, 0.14), transparent 38%), radial-gradient(circle at 70% 80%, rgba(255, 191, 105, 0.12), transparent 44%), #04050a'
-              : 'radial-gradient(circle at 20% 70%, rgba(255, 217, 102, 0.14), transparent 42%), radial-gradient(circle at 80% 25%, rgba(255, 107, 94, 0.12), transparent 46%), #050414';
+        var cfg = getEngineConfig();
+        var duration = Math.max(0, cfg.storyDurationMs | 0);
+        var slides = cfg.storySlides.length ? cfg.storySlides : [];
 
+        var timers = [];
+        var index = 0;
+
+        function clearTimers() {
+          while (timers.length) {
+            global.clearTimeout(timers.pop());
+          }
+        }
+
+        function applySlide(slide, i) {
+          storyCaption.textContent = slide && slide.caption ? slide.caption : ('情景画面 ' + (i + 1) + ' / 2');
+          if (engineArtLayer && slide && slide.image) {
+            engineArtLayer.style.backgroundImage = 'url(' + slide.image + ')';
+            engineArtLayer.classList.remove('engine-art--zoom');
+            void engineArtLayer.offsetWidth;
+            engineArtLayer.classList.add('engine-art--zoom');
+            return;
+          }
+          if (slide && slide.image) {
+            storySlide.style.backgroundImage = 'url(' + slide.image + ')';
+            storySlide.style.backgroundSize = 'contain';
+            storySlide.style.backgroundPosition = 'center';
+            storySlide.style.backgroundRepeat = 'no-repeat';
+            storySlide.style.backgroundColor = '#05050a';
+          } else {
+            storySlide.style.backgroundImage = '';
+            storySlide.style.background = slide && slide.background ? slide.background : '#05050a';
+          }
           storySlide.classList.remove('story-slide--play');
           void storySlide.offsetWidth;
           storySlide.classList.add('story-slide--play');
         }
 
-        renderSlide(1);
-        global.setTimeout(function () {
-          renderSlide(2);
-          global.setTimeout(function () {
-            hideOverlay(storyScreen, function () {
-              if (onDone) {
-                onDone();
-              }
-            });
-          }, 3200);
-        }, 3200);
+        function finish() {
+          clearTimers();
+          storyScreen.removeEventListener('pointerup', onSkip);
+          global.removeEventListener('keydown', onKeySkip);
+          hideOverlay(storyScreen, function () {
+            if (onDone) {
+              onDone();
+            }
+          });
+        }
+
+        function next() {
+          clearTimers();
+          if (index >= slides.length) {
+            finish();
+            return;
+          }
+          applySlide(slides[index], index);
+          index += 1;
+          if (duration > 0) {
+            timers.push(global.setTimeout(next, duration));
+          }
+        }
+
+        function onSkip(event) {
+          if (event) {
+            event.preventDefault();
+          }
+          next();
+        }
+
+        function onKeySkip(event) {
+          if (event.key === ' ' || event.key === 'Enter' || event.key === 'Escape') {
+            event.preventDefault();
+            next();
+          }
+        }
+
+        storyScreen.addEventListener('pointerup', onSkip);
+        global.addEventListener('keydown', onKeySkip);
+
+        if (!slides.length) {
+          finish();
+          return;
+        }
+
+        next();
       }
 
       if (startScreen && startButton) {
         pauseLoop();
+        if (canvas) {
+          canvas.style.opacity = '0';
+        }
         showOverlay(startScreen);
 
         function goToStory() {
           startButton.disabled = true;
           hideOverlay(startScreen, function () {
+            var cfg = getEngineConfig();
+            if (!cfg.storySlides || !cfg.storySlides.length) {
+              showGate('确认开始第1关？', '点击确认后进入第1关。', '开始第1关', function () {
+                startLoop();
+              });
+              return;
+            }
             playStory(function () {
               showGate('确认开始第1关？', '点击确认后进入第1关。', '开始第1关', function () {
                 startLoop();
@@ -219,6 +331,32 @@
       } else {
         game.running = true;
         global.requestAnimationFrame(tick);
+      }
+
+      (function bindEngineArt() {
+        var cfg = getEngineConfig();
+        var urls = [];
+        if (cfg.opening && cfg.opening.backgroundImage) {
+          urls.push(cfg.opening.backgroundImage);
+          if (engineArtLayer) {
+            engineArtLayer.style.backgroundImage = 'url(' + cfg.opening.backgroundImage + ')';
+            engineArtLayer.style.display = 'block';
+          }
+          var opening = document.getElementById('opening-art');
+          if (opening) {
+            opening.style.backgroundImage = 'url(' + cfg.opening.backgroundImage + ')';
+          }
+        }
+        for (var i = 0; i < cfg.storySlides.length; i += 1) {
+          if (cfg.storySlides[i] && cfg.storySlides[i].image) {
+            urls.push(cfg.storySlides[i].image);
+          }
+        }
+        preloadImages(urls);
+      })();
+
+      if (game && typeof game.render === 'function') {
+        game.render();
       }
     } catch (error) {
       console.error(error);
