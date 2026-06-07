@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="format-detection" content="telephone=no">
+  <title>逃离贝果 - 开场序章</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #060616;
+      color: #ffffff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app {
+      position: relative;
+      width: min(100vw, calc(100vh * 0.5625));
+      height: min(100vh, calc(100vw / 0.5625));
+      max-width: 720px;
+      max-height: 1280px;
+      overflow: hidden;
+      background: #090913;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 320ms ease;
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .art {
+      position: absolute;
+      inset: 0;
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      transform: scale(1.02);
+      filter: saturate(1.06);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(6, 6, 20, 0.18) 0%, rgba(6, 6, 20, 0.08) 35%, rgba(6, 6, 20, 0.55) 100%);
+    }
+
+    .content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px 28px 34px;
+    }
+
+    .top-copy {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 16px;
+      letter-spacing: 0.04em;
+    }
+
+    .badge {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(10, 12, 28, 0.36);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(8px);
+    }
+
+    .bottom-panel {
+      padding: 20px;
+      border-radius: 24px;
+      background: rgba(10, 12, 28, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+    }
+
+    .title {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.15;
+      font-weight: 700;
+      text-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .desc {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.65;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, #ff79f2, #9a6bff);
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(182, 92, 255, 0.3);
+    }
+
+    .ghost {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    .progress {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 16px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .progress-dot {
+      flex: 1;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+    }
+
+    .progress-dot::after {
+      content: "";
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #77d6ff, #ff7ceb);
+      transition: width 280ms ease;
+    }
+
+    .progress-dot.active::after {
+      width: 100%;
+    }
+
+    .tap-hint {
+      margin-top: 14px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.72);
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <section class="screen active" data-index="0">
+      <div class="art" style="background-image:url('assets/opening/开场启动页.jpg');"></div>
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="top-copy">
+          <span class="badge">启动页</span>
+          <span>序章 1 / 3</span>
+        </div>
+        <div class="bottom-panel">
+          <h1 class="title">逃离贝果</h1>
+          <p class="desc">宇宙裂缝已经被贝果怪物撕开。她拼命向前奔跑，唯一的目标就是在坍塌彻底失控前逃出生路。</p>
+          <div class="actions">
+            <button class="primary" data-next="1">开始序章</button>
+          </div>
+          <div class="tap-hint">点击按钮进入情景动画</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" data-index="1">
+      <div class="art" style="background-image:url('assets/opening/情景动画1.jpg');"></div>
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="top-copy">
+          <span class="badge">情景动画</span>
+          <span>序章 2 / 3</span>
+        </div>
+        <div class="bottom-panel">
+          <h1 class="title">贝果降临</h1>
+          <p class="desc">它悬在星海中俯视一切。吞噬、扭曲、追逐，所有宇宙都被卷进同一场疯狂之中。</p>
+          <div class="actions">
+            <button class="ghost" data-prev="0">返回上一页</button>
+            <button class="primary" data-next="2">下一幕</button>
+          </div>
+          <div class="tap-hint">点击图片空白处也可进入下一幕</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" data-index="2">
+      <div class="art" style="background-image:url('assets/opening/情景动画2.jpg');"></div>
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="top-copy">
+          <span class="badge">情景动画</span>
+          <span>序章 3 / 3</span>
+        </div>
+        <div class="bottom-panel">
+          <h1 class="title">追逐开始</h1>
+          <p class="desc">你已经没有退路。穿过星尘与涡流，继续向前，直到真正的游戏开始。</p>
+          <div class="actions">
+            <button class="ghost" data-prev="1">返回上一幕</button>
+            <button class="primary" data-next="0">重新播放</button>
+          </div>
+          <div class="tap-hint">后续可在这里接入正式游戏入口</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="progress">
+      <div class="progress-dot active"></div>
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      try {
+        var app = document.getElementById('app');
+        var screens = Array.prototype.slice.call(document.querySelectorAll('.screen'));
+        var dots = Array.prototype.slice.call(document.querySelectorAll('.progress-dot'));
+        var activeIndex = 0;
+
+        function setActive(index) {
+          var i;
+          activeIndex = index;
+          for (i = 0; i < screens.length; i += 1) {
+            screens[i].classList.toggle('active', i === index);
+            dots[i].classList.toggle('active', i === index);
+          }
+        }
+
+        app.addEventListener('click', function (event) {
+          var next = event.target.getAttribute('data-next');
+          var prev = event.target.getAttribute('data-prev');
+          if (next !== null) {
+            setActive(parseInt(next, 10));
+            return;
+          }
+          if (prev !== null) {
+            setActive(parseInt(prev, 10));
+            return;
+          }
+          if (event.target.classList.contains('art') && activeIndex < screens.length - 1) {
+            setActive(activeIndex + 1);
+          }
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  </script>
+</body>
+</html>
