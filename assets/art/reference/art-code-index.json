@@ -7,9 +7,9 @@
   },
   {
     "type": "code",
-    "name": "bagel_pixel_transparent.css",
-    "lang": "CSS",
-    "file": "assets/art/components/code/贝果像素透明底.css"
+    "name": "bagel_sprite.js",
+    "lang": "JavaScript",
+    "file": "assets/art/components/code/贝果像素透明底.js"
   },
   {
     "type": "code",
